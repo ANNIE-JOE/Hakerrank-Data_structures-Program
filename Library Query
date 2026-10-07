@@ -1,0 +1,99 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAXN 10005
+#define MAX_VAL 1000
+#define BLOCK_SIZE 2000
+
+int arr[MAXN];
+int block_freq[MAXN / BLOCK_SIZE + 2][MAX_VAL + 1];
+int temp_freq[MAX_VAL + 1];
+
+void solve() {
+    int N;
+    if (scanf("%d", &N) != 1) return;
+
+    int max_blocks = (N + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    for (int i = 0; i <= max_blocks; i++) {
+        memset(block_freq[i], 0, sizeof(block_freq[i]));
+    }
+    for (int i = 1; i <= N; i++) {
+        scanf("%d", &arr[i]);
+        int b_idx = i / BLOCK_SIZE;
+        block_freq[b_idx][arr[i]]++;
+    }
+
+    int Q;
+    if (scanf("%d", &Q) != 1) return;
+
+    while (Q--) {
+        int type;
+        scanf("%d", &type);
+
+        if (type == 1) {
+            int x, k;
+            scanf("%d %d", &x, &k);
+            
+            int b_idx = x / BLOCK_SIZE;
+            int old_val = arr[x];
+            
+            block_freq[b_idx][old_val]--;
+            block_freq[b_idx][k]++;
+            arr[x] = k;
+        } 
+        else if (type == 0) {
+            int x, y, k;
+            scanf("%d %d %d", &x, &y, &k);
+
+            int start_block = x / BLOCK_SIZE;
+            int end_block = y / BLOCK_SIZE;
+
+            memset(temp_freq, 0, sizeof(temp_freq));
+
+            if (start_block == end_block) {
+                for (int i = x; i <= y; i++) {
+                    temp_freq[arr[i]]++;
+                }
+                for (int v = 1; v <= MAX_VAL; v++) {
+                    if (k <= temp_freq[v]) {
+                        printf("%d\n", v);
+                        break;
+                    }
+                    k -= temp_freq[v];
+                }
+            } 
+            else {
+                int start_bound = (start_block + 1) * BLOCK_SIZE;
+                for (int i = x; i < start_bound; i++) {
+                    temp_freq[arr[i]]++;
+                }
+                int end_bound = end_block * BLOCK_SIZE;
+                for (int i = end_bound; i <= y; i++) {
+                    temp_freq[arr[i]]++;
+                }
+                for (int v = 1; v <= MAX_VAL; v++) {
+                    int total_count = temp_freq[v];
+                    for (int b = start_block + 1; b < end_block; b++) {
+                        total_count += block_freq[b][v];
+                    }
+
+                    if (k <= total_count) {
+                        printf("%d\n", v);
+                        break;
+                    }
+                    k -= total_count;
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    int T;
+    if (scanf("%d", &T) == 1) {
+        while (T--) {
+            solve();
+        }
+    }
+    return 0;
+}
